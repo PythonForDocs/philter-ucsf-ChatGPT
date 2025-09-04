@@ -28,3 +28,12 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools.data-files]
+config = ["config/default_filters.json"]
+"resources" = [
+  "resources/blacklists/firstnames_minus_fps.json",
+  "resources/whitelists/whitelist_plus_fps_091718_nonames.json",
+  "resources/regex/age/age_x.txt",
+  "resources/regex_context/initials.txt"
+]
