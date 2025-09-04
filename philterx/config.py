@@ -4,28 +4,50 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Literal
 
-import importlib.resources as pkg_resources
 import yaml
 
 
+_BASE_DIR = Path(__file__).resolve().parent.parent
+
+
 def _pkg_path(*parts: str) -> str:
-    return str(pkg_resources.files("philter_ucsf").joinpath(*parts))
+    return str(_BASE_DIR.joinpath(*parts))
 
 
 def _default_filters() -> str:
-    return _pkg_path("configs", "philter_delta.json")
+    return _pkg_path("config", "default_filters.json")
 
 
 def _default_xml() -> str:
-    return _pkg_path("data", "phi_notes_i2b2.json")
+    return _pkg_path("philter_ucsf", "data", "phi_notes_i2b2.json")
 
 
 def _default_coords() -> str:
-    return _pkg_path("data", "coordinates.json")
+    return _pkg_path("philter_ucsf", "data", "coordinates.json")
 
 
 def _default_eval_out() -> str:
-    return _pkg_path("data", "phi")
+    return _pkg_path("philter_ucsf", "data", "phi")
+
+
+def _default_whitelist() -> List[str]:
+    return [
+        _pkg_path(
+            "resources",
+            "whitelists",
+            "whitelist_plus_fps_091718_nonames.json",
+        )
+    ]
+
+
+def _default_blacklist() -> List[str]:
+    return [
+        _pkg_path(
+            "resources",
+            "blacklists",
+            "firstnames_minus_fps.json",
+        )
+    ]
 
 
 @dataclass
@@ -43,8 +65,8 @@ class Eval:
 class Config:
     dates: Literal["keep", "remove", "shift"] = "remove"
     replacement: Replacement = field(default_factory=Replacement)
-    whitelist: List[str] = field(default_factory=list)
-    blacklist: List[str] = field(default_factory=list)
+    whitelist: List[str] = field(default_factory=_default_whitelist)
+    blacklist: List[str] = field(default_factory=_default_blacklist)
     eval: Eval = field(default_factory=Eval)
     filters: str = field(default_factory=_default_filters)
     xml: str = field(default_factory=_default_xml)
@@ -87,8 +109,8 @@ def load_config(path: str | Path) -> Config:
     return Config(
         dates=data.get("dates", "remove"),
         replacement=Replacement(style=replacement.get("style", "asterisk")),
-        whitelist=list(data.get("whitelist", []) or []),
-        blacklist=list(data.get("blacklist", []) or []),
+        whitelist=list(data.get("whitelist", _default_whitelist()) or []),
+        blacklist=list(data.get("blacklist", _default_blacklist()) or []),
         eval=Eval(
             enabled=eval_cfg.get("enabled", False),
             gold_dir=eval_cfg.get("gold_dir", ""),
