@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "philter_ucsf"
+version = "1.0.0"
+description = "An open-source PHI-filtering software"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  {name = "Beau Norgeot", email = "beaunorgeot@gmail.com"}
+]
+dependencies = [
+  "chardet>=3.0.4",
+  "nltk>=3.6.6",
+  "numpy>=1.22.0",
+  "pandas>=1.0.5",
+  "xmltodict>=0.12.0",
+]
+
+[project.scripts]
+philterx = "philter_ucsf.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
