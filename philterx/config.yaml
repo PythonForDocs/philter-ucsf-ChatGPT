@@ -1,5 +1,20 @@
+dates: remove
 replacement:
   style: asterisk
-dates: remove
-whitelist: []
-blacklist: []
+whitelist:
+  - resources/whitelists/whitelist_plus_fps_091718_nonames.json
+blacklist:
+  - resources/blacklists/firstnames_minus_fps.json
+filters: config/default_filters.json
+xml: config/phi_notes_i2b2.json
+stanford_ner_tagger: {}
+freq_table: false
+initials: true
+coords: config/coordinates.json
+eval_out: philter_ucsf/data/phi
+eval:
+  enabled: false
+  gold_dir: ""
+ucsfformat: false
+cachepos: ""
+verbose: true

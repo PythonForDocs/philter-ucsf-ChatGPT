@@ -73,7 +73,6 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     cfg = load_config(args.config)
-    base_opts = cfg.to_philter_options()
 
     for txt_file in input_dir.rglob("*.txt"):
         original = txt_file.read_text()
@@ -83,9 +82,25 @@ def main() -> None:
             tmp_path = Path(tmpdir)
             temp_file = tmp_path / txt_file.name
             temp_file.write_text(pre_text)
-            philter_opts = dict(base_opts)
-            philter_opts["finpath"] = str(tmp_path)
-            philter_opts["foutpath"] = str(output_dir)
+            philter_opts = {
+                "finpath": str(tmp_path),
+                "foutpath": str(output_dir),
+                "filters": cfg.filters,
+                "xml": cfg.xml,
+                "freq_table": cfg.freq_table,
+                "initials": cfg.initials,
+                "coords": cfg.coords,
+                "eval_out": cfg.eval_out,
+                "ucsfformat": cfg.ucsfformat,
+                "cachepos": cfg.cachepos,
+                "verbose": cfg.verbose,
+                "outformat": cfg.replacement.style,
+            }
+            if cfg.stanford_ner_tagger:
+                philter_opts["stanford_ner_tagger"] = cfg.stanford_ner_tagger
+            if cfg.eval.enabled:
+                philter_opts["run_eval"] = True
+                philter_opts["anno_folder"] = cfg.eval.gold_dir
             filterer = Philter(philter_opts)
             filterer.map_coordinates()
             filterer.transform()
