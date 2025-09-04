@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 import yaml
 
@@ -10,42 +10,30 @@ import yaml
 _BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def _pkg_path(*parts: str) -> str:
-    return str(_BASE_DIR.joinpath(*parts))
-
-
-def _default_filters() -> str:
-    return _pkg_path("config", "default_filters.json")
-
-
-def _default_xml() -> str:
-    return _pkg_path("config", "phi_notes_i2b2.json")
-
-
-def _default_coords() -> str:
-    return _pkg_path("config", "coordinates.json")
-
-
-def _default_eval_out() -> str:
-    return _pkg_path("philter_ucsf", "data", "phi")
+def _pkg_path(*parts: str) -> Path:
+    return _BASE_DIR.joinpath(*parts)
 
 
 def _default_whitelist() -> List[str]:
     return [
-        _pkg_path(
-            "resources",
-            "whitelists",
-            "whitelist_plus_fps_091718_nonames.json",
+        str(
+            _pkg_path(
+                "resources",
+                "whitelists",
+                "whitelist_plus_fps_091718_nonames.json",
+            )
         )
     ]
 
 
 def _default_blacklist() -> List[str]:
     return [
-        _pkg_path(
-            "resources",
-            "blacklists",
-            "firstnames_minus_fps.json",
+        str(
+            _pkg_path(
+                "resources",
+                "blacklists",
+                "firstnames_minus_fps.json",
+            )
         )
     ]
 
@@ -68,15 +56,19 @@ class Config:
     whitelist: List[str] = field(default_factory=_default_whitelist)
     blacklist: List[str] = field(default_factory=_default_blacklist)
     eval: Eval = field(default_factory=Eval)
-    filters: str = field(default_factory=_default_filters)
-    xml: str = field(default_factory=_default_xml)
-    stanford_ner_tagger: Dict[str, str | bool] = field(default_factory=dict)
+    filters: Path = field(
+        default_factory=lambda: _pkg_path("config", "default_filters.json")
+    )
+    xml: Optional[Path] = None
+    stanford_ner_tagger: Optional[Dict[str, Path]] = None
     freq_table: bool = False
     initials: bool = True
-    coords: str = field(default_factory=_default_coords)
-    eval_out: str = field(default_factory=_default_eval_out)
+    coords: Path = field(default_factory=lambda: _pkg_path("config", "coordinates.json"))
+    eval_out: Path = field(
+        default_factory=lambda: _pkg_path("philter_ucsf", "data", "phi")
+    )
     ucsfformat: bool = False
-    cachepos: str = ""
+    cachepos: bool = False
     verbose: bool = True
 
     def to_philter_options(self) -> dict:
@@ -84,21 +76,28 @@ class Config:
         if self.eval.enabled:
             opts["run_eval"] = True
             opts["anno_folder"] = self.eval.gold_dir
-        for key in (
-            "filters",
-            "xml",
-            "stanford_ner_tagger",
-            "freq_table",
-            "initials",
-            "coords",
-            "eval_out",
-            "ucsfformat",
-            "cachepos",
-            "verbose",
-        ):
-            value = getattr(self, key)
-            if value:
-                opts[key] = value
+        if self.filters:
+            opts["filters"] = str(self.filters)
+        if self.xml:
+            opts["xml"] = str(self.xml)
+        if self.stanford_ner_tagger:
+            opts["stanford_ner_tagger"] = {
+                k: str(v) for k, v in self.stanford_ner_tagger.items()
+            }
+        if self.freq_table:
+            opts["freq_table"] = self.freq_table
+        if self.initials is not None:
+            opts["initials"] = self.initials
+        if self.coords:
+            opts["coords"] = str(self.coords)
+        if self.eval_out:
+            opts["eval_out"] = str(self.eval_out)
+        if self.ucsfformat:
+            opts["ucsfformat"] = self.ucsfformat
+        if self.cachepos:
+            opts["cachepos"] = self.cachepos
+        if self.verbose:
+            opts["verbose"] = self.verbose
         return opts
 
 
@@ -115,14 +114,14 @@ def load_config(path: str | Path) -> Config:
             enabled=eval_cfg.get("enabled", False),
             gold_dir=eval_cfg.get("gold_dir", ""),
         ),
-        filters=data.get("filters", _default_filters()),
-        xml=data.get("xml", _default_xml()),
-        stanford_ner_tagger=dict(data.get("stanford_ner_tagger", {}) or {}),
+        filters=Path(data["filters"]) if data.get("filters") else _pkg_path("config", "default_filters.json"),
+        xml=Path(data["xml"]) if data.get("xml") else None,
+        stanford_ner_tagger={k: Path(v) for k, v in data["stanford_ner_tagger"].items()} if data.get("stanford_ner_tagger") else None,
         freq_table=data.get("freq_table", False),
         initials=data.get("initials", True),
-        coords=data.get("coords", _default_coords()),
-        eval_out=data.get("eval_out", _default_eval_out()),
+        coords=Path(data["coords"]) if data.get("coords") else _pkg_path("config", "coordinates.json"),
+        eval_out=Path(data["eval_out"]) if data.get("eval_out") else _pkg_path("philter_ucsf", "data", "phi"),
         ucsfformat=data.get("ucsfformat", False),
-        cachepos=data.get("cachepos", ""),
+        cachepos=data.get("cachepos", False),
         verbose=data.get("verbose", True),
     )
