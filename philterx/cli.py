@@ -5,7 +5,7 @@ import tempfile
 from datetime import datetime, timedelta
 import json
 
-from philter import Philter
+from philter_ucsf.philter import Philter
 from philterx.config import load_config
 
 DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
