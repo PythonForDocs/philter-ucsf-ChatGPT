@@ -4,6 +4,7 @@ import re
 import tempfile
 from datetime import datetime, timedelta
 import json
+import yaml
 
 from philter import Philter
 from philterx.config import load_config
@@ -75,6 +76,32 @@ def main() -> None:
     cfg = load_config(args.config)
     base_opts = cfg.to_philter_options()
 
+    raw_cfg: dict = {}
+    default_cfg = Path(__file__).with_name("config.yaml")
+    if default_cfg.exists():
+        raw_cfg.update(yaml.safe_load(default_cfg.read_text()) or {})
+    raw_cfg.update(yaml.safe_load(Path(args.config).read_text()) or {})
+
+    extra_opts = {}
+    extra_opts["filters"] = raw_cfg.get(
+        "filters",
+        str(Path(__file__).resolve().parents[1] / "configs" / "philter_delta.json"),
+    )
+
+    for key in (
+        "xml",
+        "stanford_ner_tagger",
+        "freq_table",
+        "initials",
+        "coords",
+        "eval_out",
+        "ucsfformat",
+        "cachepos",
+        "verbose",
+    ):
+        if key in raw_cfg:
+            extra_opts[key] = raw_cfg[key]
+
     for txt_file in input_dir.rglob("*.txt"):
         original = txt_file.read_text()
         pre_text, wl_map = _apply_whitelist(original, cfg.whitelist)
@@ -84,6 +111,7 @@ def main() -> None:
             temp_file = tmp_path / txt_file.name
             temp_file.write_text(pre_text)
             philter_opts = dict(base_opts)
+            philter_opts.update(extra_opts)
             philter_opts["finpath"] = str(tmp_path)
             philter_opts["foutpath"] = str(output_dir)
             filterer = Philter(philter_opts)
