@@ -20,3 +20,5 @@ include philter_ucsf/filters/regex_context/*.txt
 include philter_ucsf/filters/regex/*.py
 include philter_ucsf/filters/whitelists/*.json
 include philter_ucsf/generate_dataset/*.py
+include config.yaml
+include philterx/config.yaml
