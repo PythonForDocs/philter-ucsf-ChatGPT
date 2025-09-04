@@ -19,11 +19,11 @@ def _default_filters() -> str:
 
 
 def _default_xml() -> str:
-    return _pkg_path("philter_ucsf", "data", "phi_notes_i2b2.json")
+    return _pkg_path("config", "phi_notes_i2b2.json")
 
 
 def _default_coords() -> str:
-    return _pkg_path("philter_ucsf", "data", "coordinates.json")
+    return _pkg_path("config", "coordinates.json")
 
 
 def _default_eval_out() -> str:
