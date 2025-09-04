@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import tempfile
 from datetime import datetime, timedelta
+import json
 
 from philter import Philter
 from philterx.config import load_config
@@ -95,6 +96,45 @@ def main() -> None:
             filtered = _restore_placeholders(filtered, date_map)
             filtered = _apply_blacklist(filtered, cfg.blacklist, cfg.replacement.style)
             out_file.write_text(filtered)
+
+    if cfg.eval.enabled:
+        gold_dir = Path(cfg.eval.gold_dir)
+        if gold_dir.exists():
+            if cfg.replacement.style == "redacted":
+                phi_re = re.compile(r"\[REDACTED\]")
+            elif cfg.replacement.style == "pseudonym":
+                phi_re = re.compile(r"\[PSEUDONYM\]")
+            else:
+                phi_re = re.compile(r"\*+")
+
+            tp = fp = fn = 0
+            for pred_file in output_dir.rglob("*.txt"):
+                gold_file = gold_dir / pred_file.relative_to(output_dir)
+                if not gold_file.exists():
+                    continue
+                pred_spans = {(m.start(), m.end()) for m in phi_re.finditer(pred_file.read_text())}
+                gold_spans = {(m.start(), m.end()) for m in phi_re.finditer(gold_file.read_text())}
+                tp += len(pred_spans & gold_spans)
+                fp += len(pred_spans - gold_spans)
+                fn += len(gold_spans - pred_spans)
+
+            precision = tp / (tp + fp) if (tp + fp) else 0.0
+            recall = tp / (tp + fn) if (tp + fn) else 0.0
+            f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
+            report = {
+                "tp": tp,
+                "fp": fp,
+                "fn": fn,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+            }
+            report_dir = Path("eval")
+            report_dir.mkdir(parents=True, exist_ok=True)
+            (report_dir / "report.json").write_text(json.dumps(report, indent=2))
+            print(
+                f"Evaluation - Precision: {precision:.3f}, Recall: {recall:.3f}, F1: {f1:.3f}"
+            )
 
 
 if __name__ == "__main__":
