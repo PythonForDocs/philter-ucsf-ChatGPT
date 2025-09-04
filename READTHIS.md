@@ -44,3 +44,14 @@ To score Philter against ground-truth annotations, supply the annotation directo
 python3 main.py -i NOTES -a ANNO -o OUTPUT -x ./data/phi_notes.json -f ./configs/philter_delta.json -e
 ```
 Omit `-e` (or pass `--prod=True`) to skip evaluation and simply generate PHI-reduced text.
+
+## Regex pattern formats
+Regular-expression filters may be written in one of two forms:
+
+- Raw patterns using Python syntax, e.g. `(?i)foo`.
+- Delimited form `/pattern/flags`, where trailing flags map to Python's `re`
+  options (`i`, `m`, `s`, `x`).
+
+Inline flag blocks such as `(?im)` can appear anywhere in the pattern; they are
+stripped and moved to the beginning before compilation. Any regex that fails to
+compile is skipped with a warning instead of stopping the program.

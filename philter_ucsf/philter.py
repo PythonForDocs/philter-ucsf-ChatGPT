@@ -206,7 +206,8 @@ class Philter:
         regex_filetypes = set(["txt"])
         reserved_list = set(["data", "coordinate_map"])
 
-        #first check that data is formatted, can be loaded etc. 
+        #first check that data is formatted, can be loaded etc.
+        valid_patterns = []
         for i,pattern in enumerate(self.patterns):
             self.pattern_indexes[pattern['title']] = i
             if pattern["type"] in require_files and not os.path.exists(pattern["filepath"]):
@@ -219,29 +220,67 @@ class Philter:
             if pattern["type"] == "set":
                 if pattern["filepath"].split(".")[-1] not in set_filetypes:
                     raise Exception("Invalid filteype", pattern["filepath"], "must be of", set_filetypes)
-                self.patterns[i]["data"] = self.init_set(pattern["filepath"])  
+                pattern["data"] = self.init_set(pattern["filepath"])
             if pattern["type"] == "regex":
                 if pattern["filepath"].split(".")[-1] not in regex_filetypes:
                     raise Exception("Invalid filteype", pattern["filepath"], "must be of", regex_filetypes)
-                self.patterns[i]["data"] = self.precompile(pattern["filepath"])
+                compiled = self.precompile(pattern["filepath"])
+                if compiled is None:
+                    warnings.warn(f"Skipping invalid regex pattern at {pattern['filepath']}")
+                    continue
+                pattern["data"] = compiled
             elif pattern["type"] == "regex_context":
                 if pattern["filepath"].split(".")[-1] not in regex_filetypes:
                     raise Exception("Invalid filteype", pattern["filepath"], "must be of", regex_filetypes)
-                self.patterns[i]["data"] = self.precompile(pattern["filepath"])
+                compiled = self.precompile(pattern["filepath"])
+                if compiled is None:
+                    warnings.warn(f"Skipping invalid regex pattern at {pattern['filepath']}")
+                    continue
+                pattern["data"] = compiled
                 #print(self.precompile(pattern["filepath"]))
+            valid_patterns.append(pattern)
+        self.patterns = valid_patterns
     
     def precompile(self, filepath):
         """ precompiles our regex to speed up pattern matching"""
-        regex = open(filepath,"r").read().strip()
+        pattern = open(filepath, "r").read().strip()
+        flag_chars = ""
+
+        # Support /pattern/flags style definitions
+        if pattern.startswith('/') and pattern.count('/') >= 2:
+            last = pattern.rfind('/')
+            flag_chars += pattern[last + 1:]
+            pattern = pattern[1:last]
+
+        # collect inline global flag expressions like (?imx)
+        def _collect_flags(m):
+            nonlocal flag_chars
+            flag_chars += m.group(1)
+            return ""
+
+        pattern = re.sub(r"\(\?([iLmsux]+)\)", _collect_flags, pattern)
+
+        # deduplicate and prefix flags at the start
+        if flag_chars:
+            unique = ''.join(sorted(set(flag_chars)))
+            pattern = f"(?{unique})" + pattern
+
         re_compiled = None
-        with warnings.catch_warnings(): #NOTE: this is not thread safe! but we want to print a more detailed warning message
-            warnings.simplefilter(action="error", category=FutureWarning) # in order to print a detailed message
+        with warnings.catch_warnings():  # NOTE: this is not thread safe! but we want to print a more detailed warning message
+            warnings.simplefilter(action="error", category=FutureWarning)  # in order to print a detailed message
             try:
-                re_compiled = re.compile(regex)
+                re_compiled = re.compile(pattern)
             except FutureWarning as warn:
                 print("FutureWarning: {0} in file ".format(warn) + filepath)
                 warnings.simplefilter(action="ignore", category=FutureWarning)
-                re_compiled = re.compile(regex) # assign nevertheless
+                try:
+                    re_compiled = re.compile(pattern)  # assign nevertheless
+                except re.error as err:
+                    warnings.warn(f"Invalid regex in {filepath}: {err}")
+                    return None
+            except re.error as err:
+                warnings.warn(f"Invalid regex in {filepath}: {err}")
+                return None
         return re_compiled
                
     def init_set(self, filepath):

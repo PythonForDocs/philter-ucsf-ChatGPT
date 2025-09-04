@@ -5,6 +5,7 @@ import tempfile
 from datetime import datetime, timedelta
 import json
 import yaml
+import importlib.resources as pkg_resources
 
 from philter import Philter
 from philterx.config import load_config
@@ -83,10 +84,8 @@ def main() -> None:
     raw_cfg.update(yaml.safe_load(Path(args.config).read_text()) or {})
 
     extra_opts = {}
-    extra_opts["filters"] = raw_cfg.get(
-        "filters",
-        str(Path(__file__).resolve().parents[1] / "configs" / "philter_delta.json"),
-    )
+    default_filters = pkg_resources.files("philter_ucsf") / "configs" / "philter_delta.json"
+    extra_opts["filters"] = raw_cfg.get("filters", str(default_filters))
 
     for key in (
         "xml",
