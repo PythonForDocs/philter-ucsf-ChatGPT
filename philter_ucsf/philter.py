@@ -819,16 +819,16 @@ class Philter:
             #keeps a record of all phi coordinates and text for a given file
             # data = {}
         
-            filename = root+f
+            filename = os.path.join(root, f)
 
             encoding = self.detect_encoding(filename)
-            txt = open(filename,"r", encoding=encoding['encoding']).read()
+            txt = open(filename, "r", encoding=encoding['encoding']).read()
 
 
 
             #now we transform the text
             fbase, fext = os.path.splitext(f)
-            outpathfbase = out_path + fbase
+            outpathfbase = os.path.join(out_path, fbase)
             if self.outformat == "asterisk":
                 with open(outpathfbase+".txt", "w", encoding='utf-8', errors='surrogateescape') as f:
                     contents = self.transform_text_asterisk(txt, filename)
