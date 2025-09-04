@@ -1,0 +1,8 @@
+dates: remove
+replacement:
+  style: asterisk
+whitelist: []
+blacklist: []
+eval:
+  enabled: false
+  gold_dir: ""
