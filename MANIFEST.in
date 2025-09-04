@@ -22,3 +22,6 @@ include philter_ucsf/filters/whitelists/*.json
 include philter_ucsf/generate_dataset/*.py
 include config.yaml
 include philterx/config.yaml
+
+include config/default_filters.json
+recursive-include resources *

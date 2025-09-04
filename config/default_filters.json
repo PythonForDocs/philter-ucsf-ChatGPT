@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Age Pattern",
+    "type": "regex",
+    "exclude": true,
+    "filepath": "resources/regex/age/age_x.txt",
+    "notes": "Capture ages 90 or above"
+  },
+  {
+    "title": "Firstnames Blacklist",
+    "type": "set",
+    "exclude": true,
+    "filepath": "resources/blacklists/firstnames_minus_fps.json",
+    "pos": ["NNP"],
+    "notes": "Names that should be excluded"
+  },
+  {
+    "title": "Common Safe Words",
+    "type": "set",
+    "exclude": false,
+    "filepath": "resources/whitelists/whitelist_plus_fps_091718_nonames.json",
+    "pos": [],
+    "notes": "Words to keep"
+  },
+  {
+    "title": "Initials Context",
+    "type": "regex_context",
+    "exclude": true,
+    "filepath": "resources/regex_context/initials.txt",
+    "context": "left_or_right",
+    "context_filter": "all",
+    "notes": "Detect initials with context"
+  }
+]
