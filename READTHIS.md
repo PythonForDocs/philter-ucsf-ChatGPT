@@ -21,24 +21,48 @@ philterx --input ./data/i2b2_notes/ --output ./data/i2b2_results/ --config confi
 ```
 
 ## Configuration
-`philterx` reads options from a YAML file. Key fields include:
+`philterx` reads options from a YAML file. The sample `config.yaml` lists every supported key:
 
-- `dates`: how to treat detected dates – `keep`, `remove` or `shift`.
-- `replacement.style`: format used for PHI spans (`asterisk`, `redacted`, or `pseudonym`).
-- `filters`: JSON file listing active filters.
-- `whitelist` / `blacklist`: lists of JSON files containing terms to always keep or always remove.
-- `eval.enabled` and `eval.gold_dir`: enable evaluation and point to gold-standard annotations.
-- `xml`, `stanford_ner_tagger`, `freq_table`, `initials`, `coords`, `eval_out`, `ucsfformat`, `cachepos`, `verbose`: advanced options passed directly to the underlying `Philter` engine.
+- `dates` (default `remove`): how to handle detected dates; may also be `keep` or `shift`.
+- `replacement.style` (default `asterisk`): how PHI spans are replaced; options are `asterisk`, `redacted`, or `pseudonym`.
+- `filters` (default `config/default_filters.json`): JSON file describing active filter patterns.
+- `whitelist` (default `resources/whitelists/whitelist_plus_fps_091718_nonames.json`): JSON files containing terms that should never be filtered.
+- `blacklist` (default `resources/blacklists/firstnames_minus_fps.json`): JSON files listing terms that should always be removed.
+- `xml` (default `config/phi_notes_i2b2.json`): sample XML notes used when running evaluation.
+- `stanford_ner_tagger` (default empty): supply `classifier` and `jar` paths to enable Stanford NER patterns.
+- `freq_table` (default `false`): emit token frequency tables after filtering.
+- `initials` (default `true`): treat isolated initials as PHI.
+- `coords` (default `config/coordinates.json`): coordinate mappings for annotations.
+- `eval_out` (default `philter_ucsf/data/phi`): directory for evaluation output files.
+- `eval.enabled` (default `false`): run evaluation against gold annotations.
+- `eval.gold_dir` (default empty): directory containing gold-standard annotations for evaluation.
+- `ucsfformat` (default `false`): enable UCSF-specific output format.
+- `cachepos` (default empty): directory for caching part-of-speech tags; blank disables caching.
+- `verbose` (default `true`): emit detailed logging information.
 
-## Default resources
-If a path is not provided in `config.yaml`, built‑in resources are used:
+All default resource files live within this repository under `config/`, `resources/`, or `philter_ucsf/data/` as noted above.
 
-- `config/default_filters.json` – default PHI filter definitions.
-- `resources/whitelists/whitelist_plus_fps_091718_nonames.json` – default whitelist terms.
-- `resources/blacklists/firstnames_minus_fps.json` – default blacklist terms.
-- `philter_ucsf/data/phi_notes_i2b2.json` – sample XML notes for evaluation.
-- `philter_ucsf/data/coordinates.json` – coordinate mappings for annotations.
-- `philter_ucsf/data/phi` – default directory for evaluation outputs.
+### Overriding defaults
+To customize behavior, copy `config.yaml` and edit the fields you want to change. For example:
+
+```yaml
+filters: my_filters.json
+replacement:
+  style: redacted
+whitelist:
+  - custom_whitelist.json
+blacklist:
+  - custom_blacklist.json
+eval:
+  enabled: true
+  gold_dir: /path/to/gold_annotations
+```
+
+Run `philterx` with your modified configuration:
+
+```bash
+philterx --config my_config.yaml --input ./data/i2b2_notes/ --output ./data/i2b2_results/
+```
 
 ## Editing whitelist and blacklist
 Add or remove entries from the JSON files listed under `whitelist` and `blacklist` in the configuration to customize term handling.
