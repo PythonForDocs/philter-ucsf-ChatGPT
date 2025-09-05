@@ -83,6 +83,19 @@ def main() -> None:
             temp_file = tmp_path / txt_file.name
             temp_file.write_text(pre_text)
             philter_opts = cfg.to_philter_options()
+            for key in [
+                "filters",
+                "xml",
+                "stanford_ner_tagger",
+                "freq_table",
+                "initials",
+                "coords",
+                "eval_out",
+                "ucsfformat",
+                "cachepos",
+                "verbose",
+            ]:
+                philter_opts.setdefault(key, getattr(cfg, key, None))
             philter_opts["finpath"] = str(tmp_path)
             philter_opts["foutpath"] = str(output_dir)
             filterer = Philter(philter_opts)

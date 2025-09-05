@@ -72,32 +72,26 @@ class Config:
     verbose: bool = True
 
     def to_philter_options(self) -> dict:
-        opts = {"outformat": self.replacement.style}
+        opts = {
+            "outformat": self.replacement.style,
+            "filters": str(self.filters),
+            "xml": str(self.xml) if self.xml else None,
+            "stanford_ner_tagger": {
+                k: str(v) for k, v in self.stanford_ner_tagger.items()
+            }
+            if self.stanford_ner_tagger
+            else None,
+            "freq_table": self.freq_table,
+            "initials": self.initials,
+            "coords": str(self.coords),
+            "eval_out": str(self.eval_out),
+            "ucsfformat": self.ucsfformat,
+            "cachepos": self.cachepos,
+            "verbose": self.verbose,
+        }
         if self.eval.enabled:
             opts["run_eval"] = True
             opts["anno_folder"] = self.eval.gold_dir
-        if self.filters:
-            opts["filters"] = str(self.filters)
-        if self.xml:
-            opts["xml"] = str(self.xml)
-        if self.stanford_ner_tagger:
-            opts["stanford_ner_tagger"] = {
-                k: str(v) for k, v in self.stanford_ner_tagger.items()
-            }
-        if self.freq_table:
-            opts["freq_table"] = self.freq_table
-        if self.initials is not None:
-            opts["initials"] = self.initials
-        if self.coords:
-            opts["coords"] = str(self.coords)
-        if self.eval_out:
-            opts["eval_out"] = str(self.eval_out)
-        if self.ucsfformat:
-            opts["ucsfformat"] = self.ucsfformat
-        if self.cachepos:
-            opts["cachepos"] = self.cachepos
-        if self.verbose:
-            opts["verbose"] = self.verbose
         return opts
 
 
