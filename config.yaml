@@ -1,20 +1,20 @@
-dates: remove
+dates: remove  # keep, remove, or shift detected dates
 replacement:
-  style: asterisk
-eval:
-  enabled: false
-  gold_dir: ""
-filters: config/default_filters.json
+  style: asterisk  # how to replace PHI: asterisk, redacted, or pseudonym
+filters: config/default_filters.json  # default filter definitions
 whitelist:
-  - resources/whitelists/whitelist_plus_fps_091718_nonames.json
+  - resources/whitelists/whitelist_plus_fps_091718_nonames.json  # terms to always keep
 blacklist:
-  - resources/blacklists/firstnames_minus_fps.json
-xml: config/phi_notes_i2b2.json
-stanford_ner_tagger: {}
-freq_table: false
-initials: true
-coords: config/coordinates.json
-eval_out: philter_ucsf/data/phi
-ucsfformat: false
-cachepos: ""
-verbose: true
+  - resources/blacklists/firstnames_minus_fps.json  # terms to always remove
+xml: config/phi_notes_i2b2.json  # sample XML notes used for evaluation
+stanford_ner_tagger: {}  # paths to Stanford NER classifier and jar if enabled
+freq_table: false  # set true to emit token frequency tables
+initials: true  # redact isolated initials
+coords: config/coordinates.json  # coordinate mappings for annotations
+eval_out: philter_ucsf/data/phi  # directory for evaluation output
+eval:
+  enabled: false  # set true to evaluate against gold annotations
+  gold_dir: ""    # directory containing gold-standard annotations
+ucsfformat: false  # use UCSF-specific output format
+cachepos: ""       # directory to cache POS tags; blank disables caching
+verbose: true      # verbose logging
