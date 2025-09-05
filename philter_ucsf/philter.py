@@ -17,11 +17,30 @@ import string
 
 
 class Philter:
-    """ 
+    """
         General text filtering class,
         can filter using whitelists, blacklists, regex's and POS
     """
     def __init__(self, config):
+        # Set default values for configuration options
+        self.verbose = False
+        self.run_eval = False
+        self.freq_table = None
+        self.initials = False
+        self.finpath = None
+        self.foutpath = None
+        self.anno_folder = None
+        self.coords = None
+        self.eval_outpath = None
+        self.outformat = "asterisk"
+        self.ucsf_format = False
+        self.patterns = []
+        self.xml = None
+        self.stanford_ner_tagger_classifier = None
+        self.stanford_ner_tagger_jar = None
+        self.cache_to_disk = False
+        self.pos_path = None
+
         if "verbose" in config:
             self.verbose = config["verbose"]
         if "run_eval" in config:
@@ -29,7 +48,7 @@ class Philter:
         if "freq_table" in config:
             self.freq_table = config["freq_table"]
         if "initials" in config:
-            self.initials = config["initials"]                     
+            self.initials = config["initials"]
         if "finpath" in config:
             if not os.path.exists(config["finpath"]):
                 raise Exception("Filepath does not exist", config["finpath"])
@@ -51,8 +70,6 @@ class Philter:
 
         if "outformat" in config:
             self.outformat = config["outformat"]
-        else:
-            self.outformat = "asterisk"
         
         if "ucsfformat" in config:
             self.ucsf_format = config["ucsfformat"]
@@ -86,9 +103,6 @@ class Philter:
             self.pos_path = config["cachepos"]
             if not os.path.isdir(self.pos_path):
                 os.makedirs(self.pos_path)
-        else:
-            self.cache_to_disk = False
-            self.pos_path = None 
 
         #All coordinate maps stored here
         self.coordinate_maps = []
