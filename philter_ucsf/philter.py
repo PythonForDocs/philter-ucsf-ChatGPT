@@ -78,6 +78,20 @@ class Philter:
             if not os.path.exists(config["filters"]):
                 raise Exception("Filepath does not exist", config["filters"])
             self.patterns = json.loads(open(config["filters"], "r").read())
+        else:
+            default_filters_path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "config",
+                "default_filters.json",
+            )
+            if os.path.exists(default_filters_path):
+                self.patterns = json.loads(open(default_filters_path, "r").read())
+            else:
+                raise KeyError(
+                    "'filters' not specified in config and default filters not found at {}".format(
+                        default_filters_path
+                    )
+                )
 
         if "xml" in config:
             if not os.path.exists(config["xml"]):
