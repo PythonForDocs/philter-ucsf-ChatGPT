@@ -98,18 +98,22 @@ class Philter:
                 raise Exception("Filepath does not exist", config["xml"])
             self.xml = json.loads(open(config["xml"], "r", encoding='utf-8').read())
 
-        if "stanford_ner_tagger" in config:
-            if not os.path.exists(config["stanford_ner_tagger"]["classifier"]) and config["stanford_ner_tagger"]["download"] == False:
-                raise Exception("Filepath does not exist", config["stanford_ner_tagger"]["classifier"])
-            else:
-                #download the ner data
-                process = subprocess.Popen("cd generate_dataset && ./download_ner.sh".split(), stdout=subprocess.PIPE)
+        sner = config.get("stanford_ner_tagger")
+        if sner:
+            if not os.path.exists(sner["classifier"]) and not sner.get("download"):
+                raise FileNotFoundError("Stanford NER classifier missing")
+            elif not os.path.exists(sner["classifier"]) and sner.get("download"):
+                # download the ner data
+                process = subprocess.Popen(
+                    "cd generate_dataset && ./download_ner.sh".split(),
+                    stdout=subprocess.PIPE,
+                )
                 output, error = process.communicate()
-            self.stanford_ner_tagger_classifier = config["stanford_ner_tagger"]["classifier"]
-            if not os.path.exists(config["stanford_ner_tagger"]["jar"]):
-                raise Exception("Filepath does not exist", config["stanford_ner_tagger"]["jar"])
-            self.stanford_ner_tagger_jar = config["stanford_ner_tagger"]["jar"]
-                #we lazy load our tagger only if there's a corresponding pattern
+            self.stanford_ner_tagger_classifier = sner["classifier"]
+            if not os.path.exists(sner["jar"]):
+                raise Exception("Filepath does not exist", sner["jar"])
+            self.stanford_ner_tagger_jar = sner["jar"]
+        # we lazy load our tagger only if there's a corresponding pattern
         self.stanford_ner_tagger = None
 
         if "cachepos" in config and config["cachepos"]:
