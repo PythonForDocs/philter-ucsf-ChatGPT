@@ -6,6 +6,7 @@ whitelist:
   - resources/whitelists/whitelist_plus_fps_091718_nonames.json  # terms to always keep
 blacklist:
   - resources/blacklists/firstnames_minus_fps.json  # terms to always remove
+  - philter_ucsf/filters/blacklists/lastnames_minus_fps.json
 xml: config/phi_notes_i2b2.json  # sample XML notes used for evaluation
 stanford_ner_tagger: {}  # paths to Stanford NER classifier and jar if enabled
 freq_table: false  # set true to emit token frequency tables
